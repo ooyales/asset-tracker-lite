@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, Loader2, Download } from 'lucide-react';
 import PasteArea from './PasteArea';
 
 interface DataEntryStepProps {
@@ -25,6 +25,30 @@ export default function DataEntryStep({
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState(importResult || null);
 
+  const downloadTemplate = () => {
+    // Convert tab-separated sample to CSV, or use columns as header
+    let csv: string;
+    if (sampleData) {
+      csv = sampleData.split('\n').map((line) =>
+        line.split('\t').map((cell) => {
+          const trimmed = cell.trim();
+          return trimmed.includes(',') || trimmed.includes('"')
+            ? `"${trimmed.replace(/"/g, '""')}"`
+            : trimmed;
+        }).join(',')
+      ).join('\n');
+    } else {
+      csv = columns.join(',');
+    }
+    const blob = new Blob([csv + '\n'], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${entityType}_template.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleImport = async () => {
     if (!pasteValue.trim()) return;
     setImporting(true);
@@ -48,9 +72,19 @@ export default function DataEntryStep({
 
       {/* Expected Columns */}
       <div className="bg-gray-50 rounded p-3 mb-4">
-        <h4 className="text-xs font-semibold uppercase text-eaw-muted tracking-wide mb-2">
-          Expected Columns (tab-separated)
-        </h4>
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-xs font-semibold uppercase text-eaw-muted tracking-wide">
+            Expected Columns (tab-separated)
+          </h4>
+          <button
+            onClick={downloadTemplate}
+            className="flex items-center gap-1 text-xs text-eaw-link hover:text-eaw-link-hover transition-colors"
+            title={`Download ${title} CSV template`}
+          >
+            <Download size={12} />
+            Download CSV Template
+          </button>
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {columns.map((col) => (
             <span
