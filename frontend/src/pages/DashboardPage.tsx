@@ -20,6 +20,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { dashboardApi } from '@/api/dashboard';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import type { DashboardData, License, AssetChange } from '@/types';
 
 /* ── Mock data for initial dev (replaced once API is live) ────────── */
@@ -117,6 +118,8 @@ function changeTypeBadge(ct: string): string {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const chartHeight = isMobile ? 180 : 220;
   const [data, setData] = useState<DashboardData>(MOCK_DASHBOARD);
   const [loading, setLoading] = useState(false);
 
@@ -193,84 +196,129 @@ export default function DashboardPage() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        {/* Assets by Type - Pie */}
+        {/* Assets by Type */}
         <div className="eaw-card">
           <h3 className="text-sm font-semibold text-eaw-font mb-3">Assets by Type</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={data.assets_by_type}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                dataKey="value"
-                nameKey="name"
-                paddingAngle={2}
-              >
-                {data.assets_by_type.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend
-                verticalAlign="bottom"
-                height={36}
-                formatter={(value: string) => (
-                  <span className="text-xs text-eaw-font">{value}</span>
-                )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          {isMobile ? (
+            <ResponsiveContainer width="100%" height={data.assets_by_type.length * 36 + 20}>
+              <BarChart data={data.assets_by_type} layout="vertical" barSize={18} margin={{ left: 0, right: 12, top: 4, bottom: 4 }}>
+                <XAxis type="number" tick={{ fontSize: 10, fill: '#777' }} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#333' }} width={70} />
+                <Tooltip />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {data.assets_by_type.map((entry, idx) => (
+                    <Cell key={idx} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={data.assets_by_type}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={80}
+                  dataKey="value"
+                  nameKey="name"
+                  paddingAngle={2}
+                >
+                  {data.assets_by_type.map((entry, idx) => (
+                    <Cell key={idx} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend
+                  verticalAlign="bottom"
+                  height={36}
+                  formatter={(value: string) => (
+                    <span className="text-xs text-eaw-font">{value}</span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         {/* Assets by Status - Bar */}
         <div className="eaw-card">
           <h3 className="text-sm font-semibold text-eaw-font mb-3">Assets by Status</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={data.assets_by_status} barSize={36}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#777' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#777' }} />
-              <Tooltip />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                {data.assets_by_status.map((entry, idx) => (
-                  <Cell key={idx} fill={STATUS_COLORS[entry.name] || '#337ab7'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {isMobile ? (
+            <ResponsiveContainer width="100%" height={data.assets_by_status.length * 36 + 20}>
+              <BarChart data={data.assets_by_status} layout="vertical" barSize={18} margin={{ left: 0, right: 12, top: 4, bottom: 4 }}>
+                <XAxis type="number" tick={{ fontSize: 10, fill: '#777' }} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#333' }} width={80} />
+                <Tooltip />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {data.assets_by_status.map((entry, idx) => (
+                    <Cell key={idx} fill={STATUS_COLORS[entry.name] || '#337ab7'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={data.assets_by_status} barSize={36}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#777' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#777' }} />
+                <Tooltip />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {data.assets_by_status.map((entry, idx) => (
+                    <Cell key={idx} fill={STATUS_COLORS[entry.name] || '#337ab7'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
-        {/* Classification - Pie */}
+        {/* Data Classification */}
         <div className="eaw-card">
           <h3 className="text-sm font-semibold text-eaw-font mb-3">Data Classification</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={data.classification_breakdown}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                dataKey="value"
-                nameKey="name"
-                paddingAngle={2}
-              >
-                {data.classification_breakdown.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend
-                verticalAlign="bottom"
-                height={36}
-                formatter={(value: string) => (
-                  <span className="text-xs text-eaw-font">{value}</span>
-                )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          {isMobile ? (
+            <ResponsiveContainer width="100%" height={data.classification_breakdown.length * 36 + 20}>
+              <BarChart data={data.classification_breakdown} layout="vertical" barSize={18} margin={{ left: 0, right: 12, top: 4, bottom: 4 }}>
+                <XAxis type="number" tick={{ fontSize: 10, fill: '#777' }} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#333' }} width={60} />
+                <Tooltip />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {data.classification_breakdown.map((entry, idx) => (
+                    <Cell key={idx} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={data.classification_breakdown}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={80}
+                  dataKey="value"
+                  nameKey="name"
+                  paddingAngle={2}
+                >
+                  {data.classification_breakdown.map((entry, idx) => (
+                    <Cell key={idx} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend
+                  verticalAlign="bottom"
+                  height={36}
+                  formatter={(value: string) => (
+                    <span className="text-xs text-eaw-font">{value}</span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 
@@ -283,7 +331,8 @@ export default function DashboardPage() {
           </span>
           <span className="badge-danger">{data.expiring_license_list.length}</span>
         </div>
-        <div className="eaw-section-content p-0">
+        {/* Desktop table */}
+        <div className="eaw-section-content p-0 hidden md:block">
           <table className="eaw-table">
             <thead>
               <tr>
@@ -336,6 +385,39 @@ export default function DashboardPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden mobile-card-table p-3">
+          {data.expiring_license_list.map((lic) => {
+            const days = daysUntil(lic.expiry_date);
+            return (
+              <div
+                key={lic.id}
+                className={`mobile-card-row ${days < 30 ? 'border-l-4 border-l-red-400' : days < 90 ? 'border-l-4 border-l-yellow-400' : ''}`}
+              >
+                <div className="font-medium text-eaw-font mb-1">{lic.software_name}</div>
+                <div className="text-xs text-eaw-muted mb-2">{lic.vendor} &middot; {lic.license_type}</div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <span className="text-eaw-muted">Seats</span>
+                  <span className="text-right font-medium">{lic.used_seats}/{lic.total_seats}</span>
+                  <span className="text-eaw-muted">Cost</span>
+                  <span className="text-right font-medium">${lic.annual_cost.toLocaleString()}</span>
+                  <span className="text-eaw-muted">Expires</span>
+                  <span className="text-right">
+                    {formatDate(lic.expiry_date)}
+                    {days < 30 && <span className="badge-danger ml-1">{days}d</span>}
+                    {days >= 30 && days < 90 && <span className="badge-warning ml-1">{days}d</span>}
+                  </span>
+                  <span className="text-eaw-muted">Auto-Renew</span>
+                  <span className="text-right">{lic.auto_renew ? 'Yes' : 'No'}</span>
+                </div>
+              </div>
+            );
+          })}
+          {data.expiring_license_list.length === 0 && (
+            <div className="text-center text-eaw-muted py-8 text-sm">No expiring licenses.</div>
+          )}
+        </div>
       </div>
 
       {/* Recent Changes */}
@@ -343,7 +425,8 @@ export default function DashboardPage() {
         <div className="eaw-section-header">
           <span>Recent Changes</span>
         </div>
-        <div className="eaw-section-content p-0">
+        {/* Desktop table */}
+        <div className="eaw-section-content p-0 hidden md:block">
           <table className="eaw-table">
             <thead>
               <tr>
@@ -397,6 +480,37 @@ export default function DashboardPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden mobile-card-table p-3">
+          {data.recent_changes.map((ch) => (
+            <div
+              key={ch.id}
+              className="mobile-card-row clickable"
+              onClick={() => navigate(`/assets/${ch.asset_id}`)}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-medium text-eaw-link">{ch.asset_name}</span>
+                <span className={changeTypeBadge(ch.change_type)}>
+                  {changeTypeLabel(ch.change_type)}
+                </span>
+              </div>
+              {ch.field_changed && (
+                <div className="text-sm text-eaw-muted mb-1">
+                  {ch.field_changed}
+                  {ch.old_value && <>: <span className="line-through">{ch.old_value}</span></>}
+                  {ch.new_value && <> &rarr; {ch.new_value}</>}
+                </div>
+              )}
+              <div className="text-xs text-eaw-muted">
+                {ch.changed_by} &middot; {formatTime(ch.changed_at)}
+              </div>
+            </div>
+          ))}
+          {data.recent_changes.length === 0 && (
+            <div className="text-center text-eaw-muted py-8 text-sm">No recent changes.</div>
+          )}
         </div>
       </div>
     </div>

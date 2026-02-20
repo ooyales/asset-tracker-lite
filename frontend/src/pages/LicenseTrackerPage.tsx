@@ -135,7 +135,8 @@ export default function LicenseTrackerPage() {
           </span>
           <span className="badge-muted">{licenses.length}</span>
         </div>
-        <div className="eaw-section-content p-0 overflow-x-auto">
+        {/* Desktop table */}
+        <div className="eaw-section-content p-0 overflow-x-auto hidden md:block">
           <table className="eaw-table">
             <thead>
               <tr>
@@ -241,6 +242,59 @@ export default function LicenseTrackerPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="md:hidden mobile-card-table p-3">
+          {sortedLicenses.map((lic) => {
+            const days = daysUntil(lic.expiry_date);
+            const utilPct = lic.total_seats > 0 ? Math.round((lic.used_seats / lic.total_seats) * 100) : 0;
+            let utilColor = 'bg-eaw-success';
+            if (utilPct > 90) utilColor = 'bg-eaw-danger';
+            else if (utilPct > 75) utilColor = 'bg-eaw-warning';
+
+            return (
+              <div
+                key={lic.id}
+                className={`mobile-card-row ${(lic.status === 'expired' || days < 0) ? 'border-l-4 border-l-red-400' : days < 30 ? 'border-l-4 border-l-red-400' : days < 90 ? 'border-l-4 border-l-yellow-400' : ''}`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium text-eaw-font">{lic.software_name}</span>
+                  <span className={lic.status === 'active' ? 'badge-success' : lic.status === 'expired' ? 'badge-danger' : 'badge-muted'}>
+                    {lic.status}
+                  </span>
+                </div>
+                <div className="text-xs text-eaw-muted mb-2">{lic.vendor} &middot; <span className="badge-info">{lic.license_type}</span></div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                  <span className="text-eaw-muted">Seats</span>
+                  <span className="text-right font-medium">{lic.used_seats}/{lic.total_seats}</span>
+                  <span className="text-eaw-muted">Utilization</span>
+                  <span className="text-right flex items-center justify-end gap-1.5">
+                    <span className="w-12 h-1.5 bg-gray-200 rounded-full overflow-hidden inline-block">
+                      <span className={`block h-full rounded-full ${utilColor}`} style={{ width: `${Math.min(utilPct, 100)}%` }} />
+                    </span>
+                    <span className="text-xs">{utilPct}%</span>
+                  </span>
+                  <span className="text-eaw-muted">Cost</span>
+                  <span className="text-right font-medium">{formatCurrency(lic.annual_cost)}<span className="text-xs text-eaw-muted ml-0.5">/{lic.billing_period}</span></span>
+                  <span className="text-eaw-muted">Expires</span>
+                  <span className="text-right">
+                    {formatDate(lic.expiry_date)}
+                    {days < 0 && <span className="badge-danger ml-1">Expired</span>}
+                    {days >= 0 && days < 30 && <span className="badge-danger ml-1">{days}d</span>}
+                    {days >= 30 && days < 90 && <span className="badge-warning ml-1">{days}d</span>}
+                  </span>
+                  <span className="text-eaw-muted">Auto-Renew</span>
+                  <span className="text-right">{lic.auto_renew ? 'Yes' : 'No'}</span>
+                </div>
+              </div>
+            );
+          })}
+          {licenses.length === 0 && (
+            <div className="text-center text-eaw-muted py-12 text-sm">
+              {loading ? 'Loading licenses...' : 'No licenses found.'}
+            </div>
+          )}
         </div>
       </div>
     </div>

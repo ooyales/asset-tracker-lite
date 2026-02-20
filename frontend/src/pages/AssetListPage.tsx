@@ -103,14 +103,14 @@ export default function AssetListPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl font-bold text-eaw-font">Asset Inventory</h1>
           <p className="text-sm text-eaw-muted mt-1">
             {filteredAssets.length} asset{filteredAssets.length !== 1 ? 's' : ''} found
           </p>
         </div>
-        <button className="btn-primary">
+        <button className="btn-primary self-start sm:self-auto">
           <Plus size={16} />
           Add Asset
         </button>
@@ -119,14 +119,14 @@ export default function AssetListPage() {
       {/* Filter Bar */}
       <div className="eaw-card mb-4">
         <div className="flex flex-wrap items-center gap-3">
-          <Filter size={16} className="text-eaw-muted" />
+          <Filter size={16} className="text-eaw-muted hidden sm:block" />
 
           <select
             value={filters.asset_type}
             onChange={(e) =>
               setFilters((f) => ({ ...f, asset_type: e.target.value as AssetType | '' }))
             }
-            className="select-field"
+            className="select-field w-full sm:w-auto"
           >
             <option value="">All Types</option>
             <option value="hardware">Hardware</option>
@@ -140,7 +140,7 @@ export default function AssetListPage() {
             onChange={(e) =>
               setFilters((f) => ({ ...f, status: e.target.value as AssetStatus | '' }))
             }
-            className="select-field"
+            className="select-field w-full sm:w-auto"
           >
             <option value="">All Statuses</option>
             <option value="active">Active</option>
@@ -158,7 +158,7 @@ export default function AssetListPage() {
                 classification: e.target.value as DataClassification | '',
               }))
             }
-            className="select-field"
+            className="select-field w-full sm:w-auto"
           >
             <option value="">All Classifications</option>
             <option value="CUI">CUI</option>
@@ -167,11 +167,11 @@ export default function AssetListPage() {
             <option value="Public">Public</option>
           </select>
 
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full sm:flex-1 sm:min-w-[200px]">
             <div className="relative">
               <Search
                 size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-eaw-muted"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-eaw-muted pointer-events-none z-10"
               />
               <input
                 type="text"
@@ -180,15 +180,15 @@ export default function AssetListPage() {
                   setFilters((f) => ({ ...f, search: e.target.value }))
                 }
                 placeholder="Search by name, vendor, owner..."
-                className="input-field pl-8"
+                className="w-full py-2 pr-3 pl-9 text-sm border border-eaw-border rounded outline-none transition-colors focus:border-eaw-primary focus:ring-1 focus:ring-eaw-primary"
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="eaw-section">
+      {/* Desktop Table */}
+      <div className="eaw-section hidden md:block">
         <div className="overflow-x-auto">
           <table className="eaw-table">
             <thead>
@@ -243,6 +243,35 @@ export default function AssetListPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile Card List */}
+      <div className="md:hidden mobile-card-table">
+        {filteredAssets.map((asset) => (
+          <div
+            key={asset.id}
+            className="mobile-card-row clickable"
+            onClick={() => navigate(`/assets/${asset.id}`)}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="flex-shrink-0 text-eaw-primary">{TYPE_ICONS[asset.asset_type]}</span>
+              <span className="font-medium text-eaw-link truncate">{asset.name}</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              <span className={TYPE_COLORS[asset.asset_type]}>{asset.asset_type}</span>
+              <span className={STATUS_BADGE[asset.status]}>{asset.status}</span>
+              <span className={CLASSIFICATION_BADGE[asset.classification]}>{asset.classification}</span>
+            </div>
+            <div className="text-xs text-eaw-muted">
+              {asset.sub_type} &middot; {asset.owner_name || '-'} &middot; {asset.location_name || '-'}
+            </div>
+          </div>
+        ))}
+        {filteredAssets.length === 0 && (
+          <div className="text-center text-eaw-muted py-12 text-sm">
+            {loading ? 'Loading assets...' : 'No assets match your filters.'}
+          </div>
+        )}
       </div>
     </div>
   );

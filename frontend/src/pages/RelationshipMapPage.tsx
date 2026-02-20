@@ -141,7 +141,7 @@ export default function RelationshipMapPage() {
               setTypeFilter(e.target.value as AssetType | '');
               setSelectedNode(null);
             }}
-            className="select-field"
+            className="select-field w-full sm:w-auto"
           >
             <option value="">All Types</option>
             <option value="hardware">Hardware</option>
@@ -150,17 +150,17 @@ export default function RelationshipMapPage() {
             <option value="network">Network</option>
           </select>
 
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="relative w-full sm:flex-1 sm:min-w-[200px] sm:max-w-sm">
             <Search
               size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-eaw-muted"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-eaw-muted pointer-events-none z-10"
             />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter nodes..."
-              className="input-field pl-8"
+              className="w-full py-2 pr-3 pl-9 text-sm border border-eaw-border rounded outline-none transition-colors focus:border-eaw-primary focus:ring-1 focus:ring-eaw-primary"
             />
           </div>
 
@@ -177,7 +177,7 @@ export default function RelationshipMapPage() {
       </div>
 
       {/* Graph + Detail Panel */}
-      <div className="flex-1 flex gap-4 min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         {/* Graph */}
         <div
           ref={containerRef}
@@ -195,7 +195,7 @@ export default function RelationshipMapPage() {
 
         {/* Detail Panel */}
         {selectedNode && (
-          <div className="w-72 bg-white rounded shadow-eaw p-4 overflow-y-auto flex-shrink-0">
+          <div className="w-full md:w-72 bg-white rounded shadow-eaw p-4 overflow-y-auto flex-shrink-0 order-first md:order-last max-h-64 md:max-h-none">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-eaw-font">{selectedNode.name}</h3>
               <button
@@ -266,7 +266,7 @@ export default function RelationshipMapPage() {
       </div>
 
       {/* Legend */}
-      <div className="mt-3 flex items-center gap-4 justify-center">
+      <div className="mt-3 flex items-center gap-3 md:gap-4 justify-center flex-wrap">
         {TYPE_INFO.map((t) => (
           <div key={t.type} className="flex items-center gap-1.5 text-xs text-eaw-font">
             <div

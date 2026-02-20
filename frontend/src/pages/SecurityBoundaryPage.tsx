@@ -248,64 +248,90 @@ export default function SecurityBoundaryPage() {
 
               {/* Expanded asset list */}
               {isExpanded && boundary.assets && (
-                <div className="eaw-section-content p-0">
-                  <table className="eaw-table">
-                    <thead>
-                      <tr>
-                        <th>Asset Name</th>
-                        <th>Type</th>
-                        <th>Sub-Type</th>
-                        <th>Status</th>
-                        <th>Classification</th>
-                        <th>Vendor</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {boundary.assets.map((asset) => (
-                        <tr key={asset.id}>
-                          <td className="font-medium text-eaw-link">
-                            <span className="flex items-center gap-2">
-                              {TYPE_ICONS[asset.asset_type]}
-                              {asset.name}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={TYPE_COLORS[asset.asset_type]}>
-                              {asset.asset_type}
-                            </span>
-                          </td>
-                          <td className="text-eaw-muted">{asset.sub_type}</td>
-                          <td>
-                            <span className={STATUS_BADGE[asset.status] || 'badge-muted'}>
-                              {asset.status}
-                            </span>
-                          </td>
-                          <td>
-                            <span
-                              className={
-                                asset.classification === 'CUI'
-                                  ? 'badge-danger'
-                                  : asset.classification === 'FCI'
-                                  ? 'badge-warning'
-                                  : 'badge-info'
-                              }
-                            >
-                              {asset.classification}
-                            </span>
-                          </td>
-                          <td className="text-eaw-muted">{asset.vendor}</td>
-                        </tr>
-                      ))}
-                      {boundary.assets.length === 0 && (
+                <>
+                  {/* Desktop table */}
+                  <div className="eaw-section-content p-0 hidden md:block">
+                    <table className="eaw-table">
+                      <thead>
                         <tr>
-                          <td colSpan={6} className="text-center text-eaw-muted py-8">
-                            No assets in this boundary.
-                          </td>
+                          <th>Asset Name</th>
+                          <th>Type</th>
+                          <th>Sub-Type</th>
+                          <th>Status</th>
+                          <th>Classification</th>
+                          <th>Vendor</th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {boundary.assets.map((asset) => (
+                          <tr key={asset.id}>
+                            <td className="font-medium text-eaw-link">
+                              <span className="flex items-center gap-2">
+                                {TYPE_ICONS[asset.asset_type]}
+                                {asset.name}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={TYPE_COLORS[asset.asset_type]}>
+                                {asset.asset_type}
+                              </span>
+                            </td>
+                            <td className="text-eaw-muted">{asset.sub_type}</td>
+                            <td>
+                              <span className={STATUS_BADGE[asset.status] || 'badge-muted'}>
+                                {asset.status}
+                              </span>
+                            </td>
+                            <td>
+                              <span
+                                className={
+                                  asset.classification === 'CUI'
+                                    ? 'badge-danger'
+                                    : asset.classification === 'FCI'
+                                    ? 'badge-warning'
+                                    : 'badge-info'
+                                }
+                              >
+                                {asset.classification}
+                              </span>
+                            </td>
+                            <td className="text-eaw-muted">{asset.vendor}</td>
+                          </tr>
+                        ))}
+                        {boundary.assets.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="text-center text-eaw-muted py-8">
+                              No assets in this boundary.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile cards */}
+                  <div className="md:hidden mobile-card-table p-3">
+                    {boundary.assets.map((asset) => (
+                      <div key={asset.id} className="mobile-card-row">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-eaw-primary">{TYPE_ICONS[asset.asset_type]}</span>
+                          <span className="font-medium text-eaw-link">{asset.name}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          <span className={TYPE_COLORS[asset.asset_type]}>{asset.asset_type}</span>
+                          <span className={STATUS_BADGE[asset.status] || 'badge-muted'}>{asset.status}</span>
+                          <span className={asset.classification === 'CUI' ? 'badge-danger' : asset.classification === 'FCI' ? 'badge-warning' : 'badge-info'}>
+                            {asset.classification}
+                          </span>
+                        </div>
+                        <div className="text-xs text-eaw-muted mt-1">{asset.sub_type} &middot; {asset.vendor}</div>
+                      </div>
+                    ))}
+                    {boundary.assets.length === 0 && (
+                      <div className="text-center text-eaw-muted py-8 text-sm">No assets in this boundary.</div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           );

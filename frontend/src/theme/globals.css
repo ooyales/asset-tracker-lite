@@ -169,3 +169,42 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-400;
 }
+
+/* ── Mobile Responsive (< md breakpoint) ───────────────────────────── */
+@media (max-width: 767px) {
+  .eaw-table thead th {
+    @apply px-3 py-2 text-[10px];
+  }
+  .eaw-table tbody td {
+    @apply px-3 py-2;
+  }
+
+  .kpi-card {
+    @apply p-3 gap-3;
+  }
+  .kpi-card .kpi-value {
+    @apply text-xl;
+  }
+
+  .eaw-section-header {
+    @apply px-3 py-2;
+  }
+  .eaw-section-content {
+    @apply px-3 py-3;
+  }
+
+  .eaw-card {
+    @apply p-3;
+  }
+}
+
+/* ── Mobile Card Table (stacked layout alternative for tables) ────── */
+.mobile-card-table {
+  @apply space-y-3;
+}
+.mobile-card-row {
+  @apply bg-white rounded shadow-sm p-3 border border-eaw-border-light;
+}
+.mobile-card-row.clickable {
+  @apply cursor-pointer active:bg-gray-50;
+}

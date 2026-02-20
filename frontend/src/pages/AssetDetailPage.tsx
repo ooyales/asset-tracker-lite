@@ -220,26 +220,26 @@ export default function AssetDetailPage() {
         Back
       </button>
 
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-gray-100 rounded text-eaw-primary">
+      <div className="flex items-start gap-3 mb-6">
+        <div className="p-2 bg-gray-100 rounded text-eaw-primary flex-shrink-0">
           {TYPE_ICONS[asset.asset_type]}
         </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-eaw-font">{asset.name}</h1>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-lg md:text-xl font-bold text-eaw-font">{asset.name}</h1>
             <span className={TYPE_BADGE[asset.asset_type]}>{asset.asset_type}</span>
             <span className={STATUS_BADGE[asset.status]}>{asset.status}</span>
           </div>
-          <p className="text-sm text-eaw-muted mt-0.5">{asset.description}</p>
+          <p className="text-sm text-eaw-muted mt-0.5 break-words">{asset.description}</p>
         </div>
       </div>
 
       {/* Overview */}
       <CollapsibleSection title="Overview">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 md:gap-y-3">
           {overviewFields.map((f) => (
-            <div key={f.label} className="flex items-baseline gap-2">
-              <span className="text-sm text-eaw-muted w-36 flex-shrink-0">{f.label}:</span>
+            <div key={f.label} className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-2">
+              <span className="text-xs sm:text-sm text-eaw-muted sm:w-36 flex-shrink-0">{f.label}:</span>
               {f.badge ? (
                 <span className={f.badge}>{f.value}</span>
               ) : (
@@ -256,13 +256,13 @@ export default function AssetDetailPage() {
         count={Object.keys(asset.attributes || {}).length}
       >
         {Object.keys(asset.attributes || {}).length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 md:gap-y-2">
             {Object.entries(asset.attributes).map(([key, val]) => (
-              <div key={key} className="flex items-baseline gap-2">
-                <span className="text-sm text-eaw-muted w-36 flex-shrink-0 font-mono">
+              <div key={key} className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-2">
+                <span className="text-xs sm:text-sm text-eaw-muted sm:w-36 flex-shrink-0 font-mono">
                   {key}:
                 </span>
-                <span className="text-sm font-medium text-eaw-font">{String(val)}</span>
+                <span className="text-sm font-medium text-eaw-font break-words">{String(val)}</span>
               </div>
             ))}
           </div>
@@ -274,51 +274,80 @@ export default function AssetDetailPage() {
       {/* Relationships */}
       <CollapsibleSection title="Relationships" count={relationships.length}>
         {relationships.length > 0 ? (
-          <table className="eaw-table">
-            <thead>
-              <tr>
-                <th>Direction</th>
-                <th>Relationship</th>
-                <th>Related Asset</th>
-                <th>Type</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto -mx-4 -my-4">
+              <table className="eaw-table">
+                <thead>
+                  <tr>
+                    <th>Direction</th>
+                    <th>Relationship</th>
+                    <th>Related Asset</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {relationships.map((rel) => {
+                    const isSource = rel.source_asset_id === asset.id;
+                    const relatedName = isSource ? rel.target_asset_name : rel.source_asset_name;
+                    const relatedId = isSource ? rel.target_asset_id : rel.source_asset_id;
+                    const relatedType = isSource ? rel.target_asset_type : rel.source_asset_type;
+                    return (
+                      <tr key={rel.id}>
+                        <td>
+                          <span className="badge-muted">
+                            {isSource ? 'Outgoing' : 'Incoming'}
+                          </span>
+                        </td>
+                        <td className="font-medium text-eaw-font">{rel.relationship_type}</td>
+                        <td>
+                          <Link
+                            to={`/assets/${relatedId}`}
+                            className="flex items-center gap-1 text-eaw-link hover:text-eaw-link-hover"
+                          >
+                            {relatedType && TYPE_ICONS[relatedType]}
+                            {relatedName}
+                            <ExternalLink size={12} />
+                          </Link>
+                        </td>
+                        <td>
+                          {relatedType && (
+                            <span className={TYPE_BADGE[relatedType]}>{relatedType}</span>
+                          )}
+                        </td>
+                        <td className="text-eaw-muted">{rel.description}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-2">
               {relationships.map((rel) => {
                 const isSource = rel.source_asset_id === asset.id;
                 const relatedName = isSource ? rel.target_asset_name : rel.source_asset_name;
                 const relatedId = isSource ? rel.target_asset_id : rel.source_asset_id;
                 const relatedType = isSource ? rel.target_asset_type : rel.source_asset_type;
                 return (
-                  <tr key={rel.id}>
-                    <td>
-                      <span className="badge-muted">
-                        {isSource ? 'Outgoing' : 'Incoming'}
-                      </span>
-                    </td>
-                    <td className="font-medium text-eaw-font">{rel.relationship_type}</td>
-                    <td>
-                      <Link
-                        to={`/assets/${relatedId}`}
-                        className="flex items-center gap-1 text-eaw-link hover:text-eaw-link-hover"
-                      >
+                  <Link key={rel.id} to={`/assets/${relatedId}`} className="block mobile-card-row">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="flex items-center gap-1.5 font-medium text-eaw-link">
                         {relatedType && TYPE_ICONS[relatedType]}
                         {relatedName}
-                        <ExternalLink size={12} />
-                      </Link>
-                    </td>
-                    <td>
-                      {relatedType && (
-                        <span className={TYPE_BADGE[relatedType]}>{relatedType}</span>
-                      )}
-                    </td>
-                    <td className="text-eaw-muted">{rel.description}</td>
-                  </tr>
+                      </span>
+                      <span className="badge-muted">{isSource ? 'Outgoing' : 'Incoming'}</span>
+                    </div>
+                    <div className="text-xs text-eaw-muted">
+                      {rel.relationship_type} &middot; {rel.description}
+                    </div>
+                  </Link>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+          </>
         ) : (
           <p className="text-sm text-eaw-muted">No relationships defined.</p>
         )}
@@ -328,36 +357,64 @@ export default function AssetDetailPage() {
       {(asset.asset_type === 'software' || licenses.length > 0) && (
         <CollapsibleSection title="Licenses" count={licenses.length}>
           {licenses.length > 0 ? (
-            <table className="eaw-table">
-              <thead>
-                <tr>
-                  <th>Software</th>
-                  <th>Vendor</th>
-                  <th>Type</th>
-                  <th>Seats</th>
-                  <th>Cost</th>
-                  <th>Expiry</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto -mx-4 -my-4">
+                <table className="eaw-table">
+                  <thead>
+                    <tr>
+                      <th>Software</th>
+                      <th>Vendor</th>
+                      <th>Type</th>
+                      <th>Seats</th>
+                      <th>Cost</th>
+                      <th>Expiry</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {licenses.map((lic) => (
+                      <tr key={lic.id}>
+                        <td className="font-medium text-eaw-font">{lic.software_name}</td>
+                        <td>{lic.vendor}</td>
+                        <td>{lic.license_type}</td>
+                        <td>{lic.used_seats}/{lic.total_seats}</td>
+                        <td>${lic.annual_cost.toLocaleString()}</td>
+                        <td>{formatDate(lic.expiry_date)}</td>
+                        <td>
+                          <span className={lic.status === 'active' ? 'badge-success' : 'badge-danger'}>
+                            {lic.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-2">
                 {licenses.map((lic) => (
-                  <tr key={lic.id}>
-                    <td className="font-medium text-eaw-font">{lic.software_name}</td>
-                    <td>{lic.vendor}</td>
-                    <td>{lic.license_type}</td>
-                    <td>{lic.used_seats}/{lic.total_seats}</td>
-                    <td>${lic.annual_cost.toLocaleString()}</td>
-                    <td>{formatDate(lic.expiry_date)}</td>
-                    <td>
+                  <div key={lic.id} className="mobile-card-row">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-eaw-font">{lic.software_name}</span>
                       <span className={lic.status === 'active' ? 'badge-success' : 'badge-danger'}>
                         {lic.status}
                       </span>
-                    </td>
-                  </tr>
+                    </div>
+                    <div className="text-xs text-eaw-muted mb-2">{lic.vendor} &middot; {lic.license_type}</div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                      <span className="text-eaw-muted">Seats</span>
+                      <span className="text-right font-medium">{lic.used_seats}/{lic.total_seats}</span>
+                      <span className="text-eaw-muted">Cost</span>
+                      <span className="text-right font-medium">${lic.annual_cost.toLocaleString()}</span>
+                      <span className="text-eaw-muted">Expiry</span>
+                      <span className="text-right">{formatDate(lic.expiry_date)}</span>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </>
           ) : (
             <p className="text-sm text-eaw-muted">No licenses associated with this asset.</p>
           )}
@@ -380,13 +437,13 @@ export default function AssetDetailPage() {
                 <div className="w-6 h-6 rounded-full bg-gray-100 border-2 border-eaw-border flex items-center justify-center flex-shrink-0 relative z-10">
                   <div className="w-2 h-2 rounded-full bg-eaw-primary" />
                 </div>
-                <div className="flex-1 pb-2">
+                <div className="flex-1 pb-2 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={changeTypeBadge(ch.change_type)}>
                       {changeTypeLabel(ch.change_type)}
                     </span>
                     {ch.field_changed && (
-                      <span className="text-sm text-eaw-font">
+                      <span className="text-sm text-eaw-font break-words">
                         {ch.field_changed}
                         {ch.old_value && (
                           <>: <span className="line-through text-eaw-muted">{ch.old_value}</span></>
