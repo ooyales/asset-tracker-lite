@@ -11,7 +11,46 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """Authenticate user and return JWT token."""
+    """Authenticate user and return JWT token.
+    ---
+    tags:
+      - Auth
+    security: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - username
+            - password
+          properties:
+            username:
+              type: string
+              example: admin
+            password:
+              type: string
+              example: admin123
+    responses:
+      200:
+        description: Login successful
+        schema:
+          type: object
+          properties:
+            token:
+              type: string
+              description: JWT access token
+            access_token:
+              type: string
+              description: JWT access token (alias)
+            user:
+              $ref: '#/definitions/User'
+      400:
+        description: Missing credentials
+      401:
+        description: Invalid credentials
+    """
     data = request.get_json()
     if not data:
         raise BadRequestError('Request body is required')
@@ -46,7 +85,25 @@ def login():
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def me():
-    """Return current user info from JWT."""
+    """Return current authenticated user info from JWT.
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: Current user profile
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+            role:
+              type: string
+            display_name:
+              type: string
+      401:
+        description: Unauthorized — missing or invalid JWT
+    """
     identity = get_jwt_identity()
     claims = get_jwt()
     return jsonify({
@@ -59,7 +116,21 @@ def me():
 @auth_bp.route('/refresh', methods=['POST'])
 @jwt_required()
 def refresh():
-    """Refresh the JWT access token."""
+    """Refresh the JWT access token.
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: New access token
+        schema:
+          type: object
+          properties:
+            access_token:
+              type: string
+      401:
+        description: Unauthorized — missing or invalid JWT
+    """
     identity = get_jwt_identity()
     claims = get_jwt()
     additional_claims = {

@@ -38,6 +38,107 @@ CLASSIFICATION_COLORS = {
 
 @dashboard_bp.route('/', methods=['GET'])
 def get_dashboard():
+    """Get dashboard summary with KPI counts, charts, expiring licenses, and recent changes.
+    ---
+    tags:
+      - Dashboard
+    parameters:
+      - name: session_id
+        in: query
+        type: string
+        required: false
+        default: __default__
+        description: Filter by session
+    responses:
+      200:
+        description: Dashboard summary data
+        schema:
+          type: object
+          properties:
+            total_assets:
+              type: integer
+            active_assets:
+              type: integer
+            expiring_licenses:
+              type: integer
+              description: Count of licenses expiring within 180 days
+            orphan_assets:
+              type: integer
+              description: Count of assets with no relationships
+            assets_by_type:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  value:
+                    type: integer
+                  color:
+                    type: string
+            assets_by_status:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  value:
+                    type: integer
+            classification_breakdown:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  value:
+                    type: integer
+                  color:
+                    type: string
+            expiring_license_list:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  software_name:
+                    type: string
+                  vendor:
+                    type: string
+                  license_type:
+                    type: string
+                  total_seats:
+                    type: integer
+                  used_seats:
+                    type: integer
+                  annual_cost:
+                    type: number
+                  billing_period:
+                    type: string
+                  expiry_date:
+                    type: string
+                    format: date
+                  auto_renew:
+                    type: boolean
+                  status:
+                    type: string
+                  asset_id:
+                    type: integer
+                  notes:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+            recent_changes:
+              type: array
+              items:
+                $ref: '#/definitions/AssetChange'
+    """
     session_id = request.args.get('session_id', '__default__')
 
     # Total assets

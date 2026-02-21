@@ -10,9 +10,23 @@ security_bp = Blueprint('security', __name__, url_prefix='/api/security')
 @security_bp.route('/boundaries', methods=['GET'])
 def list_boundaries():
     """List all security boundaries.
-
-    Query params:
-        session_id: Filter by session (default: __default__)
+    ---
+    tags:
+      - Security
+    parameters:
+      - name: session_id
+        in: query
+        type: string
+        required: false
+        default: __default__
+        description: Filter by session
+    responses:
+      200:
+        description: List of security boundaries
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/SecurityBoundary'
     """
     session_id = request.args.get('session_id', '__default__')
     boundaries = SecurityBoundary.query.filter_by(session_id=session_id).order_by(
@@ -23,7 +37,29 @@ def list_boundaries():
 
 @security_bp.route('/boundaries/<int:boundary_id>', methods=['GET'])
 def get_boundary(boundary_id):
-    """Get a single security boundary by ID."""
+    """Get a single security boundary by ID.
+    ---
+    tags:
+      - Security
+    parameters:
+      - name: boundary_id
+        in: path
+        type: integer
+        required: true
+        description: Security boundary primary key
+      - name: session_id
+        in: query
+        type: string
+        required: false
+        default: __default__
+    responses:
+      200:
+        description: Security boundary details
+        schema:
+          $ref: '#/definitions/SecurityBoundary'
+      404:
+        description: Security boundary not found
+    """
     session_id = request.args.get('session_id', '__default__')
     boundary = SecurityBoundary.query.filter_by(
         id=boundary_id, session_id=session_id
@@ -36,9 +72,36 @@ def get_boundary(boundary_id):
 @security_bp.route('/boundaries/<int:boundary_id>/assets', methods=['GET'])
 def get_boundary_assets(boundary_id):
     """Get all assets within a security boundary.
-
-    Query params:
-        session_id: Filter by session (default: __default__)
+    ---
+    tags:
+      - Security
+    parameters:
+      - name: boundary_id
+        in: path
+        type: integer
+        required: true
+        description: Security boundary primary key
+      - name: session_id
+        in: query
+        type: string
+        required: false
+        default: __default__
+    responses:
+      200:
+        description: Boundary details with its assets
+        schema:
+          type: object
+          properties:
+            boundary:
+              $ref: '#/definitions/SecurityBoundary'
+            assets:
+              type: array
+              items:
+                $ref: '#/definitions/Asset'
+            count:
+              type: integer
+      404:
+        description: Security boundary not found
     """
     session_id = request.args.get('session_id', '__default__')
     boundary = SecurityBoundary.query.filter_by(
@@ -60,7 +123,43 @@ def get_boundary_assets(boundary_id):
 
 @security_bp.route('/boundaries', methods=['POST'])
 def create_boundary():
-    """Create a new security boundary."""
+    """Create a new security boundary.
+    ---
+    tags:
+      - Security
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+            boundary_type:
+              type: string
+              enum: [cui_boundary, fci_boundary, corporate]
+            description:
+              type: string
+            cmmc_level:
+              type: string
+              enum: [level_1, level_2, level_3]
+            assessment_date:
+              type: string
+              format: date
+            session_id:
+              type: string
+              default: __default__
+    responses:
+      201:
+        description: Security boundary created
+        schema:
+          $ref: '#/definitions/SecurityBoundary'
+      400:
+        description: Boundary name is required
+    """
     data = request.get_json()
     if not data:
         raise BadRequestError('Request body is required')
@@ -82,7 +181,47 @@ def create_boundary():
 
 @security_bp.route('/boundaries/<int:boundary_id>', methods=['PUT'])
 def update_boundary(boundary_id):
-    """Update a security boundary."""
+    """Update a security boundary.
+    ---
+    tags:
+      - Security
+    parameters:
+      - name: boundary_id
+        in: path
+        type: integer
+        required: true
+        description: Security boundary primary key
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            boundary_type:
+              type: string
+              enum: [cui_boundary, fci_boundary, corporate]
+            description:
+              type: string
+            cmmc_level:
+              type: string
+              enum: [level_1, level_2, level_3]
+            assessment_date:
+              type: string
+              format: date
+            session_id:
+              type: string
+    responses:
+      200:
+        description: Updated security boundary
+        schema:
+          $ref: '#/definitions/SecurityBoundary'
+      400:
+        description: Request body is required
+      404:
+        description: Security boundary not found
+    """
     data = request.get_json()
     if not data:
         raise BadRequestError('Request body is required')

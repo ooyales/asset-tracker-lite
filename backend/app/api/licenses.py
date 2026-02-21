@@ -8,10 +8,24 @@ licenses_bp = Blueprint('licenses', __name__, url_prefix='/api/licenses')
 
 @licenses_bp.route('/', methods=['GET'])
 def list_licenses():
-    """List all licenses.
-
-    Query params:
-        session_id: Filter by session (default: __default__)
+    """List all licenses ordered by expiry date.
+    ---
+    tags:
+      - Licenses
+    parameters:
+      - name: session_id
+        in: query
+        type: string
+        required: false
+        default: __default__
+        description: Filter by session
+    responses:
+      200:
+        description: List of licenses
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/License'
     """
     session_id = request.args.get('session_id', '__default__')
     licenses = License.query.filter_by(session_id=session_id).order_by(
@@ -22,7 +36,29 @@ def list_licenses():
 
 @licenses_bp.route('/<int:license_id>', methods=['GET'])
 def get_license(license_id):
-    """Get a single license by ID."""
+    """Get a single license by ID.
+    ---
+    tags:
+      - Licenses
+    parameters:
+      - name: license_id
+        in: path
+        type: integer
+        required: true
+        description: License primary key
+      - name: session_id
+        in: query
+        type: string
+        required: false
+        default: __default__
+    responses:
+      200:
+        description: License details
+        schema:
+          $ref: '#/definitions/License'
+      404:
+        description: License not found
+    """
     session_id = request.args.get('session_id', '__default__')
     lic = License.query.filter_by(id=license_id, session_id=session_id).first()
     if not lic:
@@ -32,7 +68,61 @@ def get_license(license_id):
 
 @licenses_bp.route('/', methods=['POST'])
 def create_license():
-    """Create a new license."""
+    """Create a new license.
+    ---
+    tags:
+      - Licenses
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - software_asset_id
+          properties:
+            software_asset_id:
+              type: integer
+              description: ID of the software asset this license belongs to
+            license_type:
+              type: string
+              enum: [perpetual, subscription, per_seat, site]
+            vendor:
+              type: string
+            total_seats:
+              type: integer
+            used_seats:
+              type: integer
+              default: 0
+            cost_per_period:
+              type: number
+            billing_period:
+              type: string
+              enum: [monthly, annual]
+            start_date:
+              type: string
+              format: date
+            expiry_date:
+              type: string
+              format: date
+            auto_renew:
+              type: boolean
+              default: false
+            contract_number:
+              type: string
+            notes:
+              type: string
+            session_id:
+              type: string
+              default: __default__
+    responses:
+      201:
+        description: License created
+        schema:
+          $ref: '#/definitions/License'
+      400:
+        description: Request body is required
+    """
     data = request.get_json()
     if not data:
         raise BadRequestError('Request body is required')
@@ -59,7 +149,60 @@ def create_license():
 
 @licenses_bp.route('/<int:license_id>', methods=['PUT'])
 def update_license(license_id):
-    """Update a license."""
+    """Update a license.
+    ---
+    tags:
+      - Licenses
+    parameters:
+      - name: license_id
+        in: path
+        type: integer
+        required: true
+        description: License primary key
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            software_asset_id:
+              type: integer
+            license_type:
+              type: string
+            vendor:
+              type: string
+            total_seats:
+              type: integer
+            used_seats:
+              type: integer
+            cost_per_period:
+              type: number
+            billing_period:
+              type: string
+            start_date:
+              type: string
+              format: date
+            expiry_date:
+              type: string
+              format: date
+            auto_renew:
+              type: boolean
+            contract_number:
+              type: string
+            notes:
+              type: string
+            session_id:
+              type: string
+    responses:
+      200:
+        description: Updated license
+        schema:
+          $ref: '#/definitions/License'
+      400:
+        description: Request body is required
+      404:
+        description: License not found
+    """
     data = request.get_json()
     if not data:
         raise BadRequestError('Request body is required')
@@ -89,7 +232,32 @@ def update_license(license_id):
 
 @licenses_bp.route('/<int:license_id>', methods=['DELETE'])
 def delete_license(license_id):
-    """Delete a license."""
+    """Delete a license.
+    ---
+    tags:
+      - Licenses
+    parameters:
+      - name: license_id
+        in: path
+        type: integer
+        required: true
+        description: License primary key
+      - name: session_id
+        in: query
+        type: string
+        required: false
+        default: __default__
+    responses:
+      200:
+        description: License deleted
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+      404:
+        description: License not found
+    """
     session_id = request.args.get('session_id', '__default__')
     lic = License.query.filter_by(id=license_id, session_id=session_id).first()
     if not lic:
